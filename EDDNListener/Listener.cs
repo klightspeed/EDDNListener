@@ -107,7 +107,7 @@ namespace EDDNListener
 
             if (sm.Name != sysname)
             {
-                System.Diagnostics.Trace.WriteLine($"Unknown system {sysname} received at {syspos}");
+                Console.WriteLine($"Unknown system {sysname} received at {syspos}");
             }
         }
     }

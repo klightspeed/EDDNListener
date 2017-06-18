@@ -649,7 +649,7 @@ namespace EDDNListener
 
         public static void LoadProcGenSectorsJson(string filename)
         {
-            System.Diagnostics.Trace.WriteLine($"Loading procgen sectors from {filename}");
+            Console.WriteLine($"Loading procgen sectors from {filename}");
             using (Stream s = File.OpenRead(filename))
             {
                 using (TextReader r = new StreamReader(s))
@@ -662,12 +662,12 @@ namespace EDDNListener
                     }
                 }
             }
-            System.Diagnostics.Trace.WriteLine("Done");
+            Console.WriteLine("Done");
         }
 
         public static void LoadNamedSystemsJson(string filename)
         {
-            System.Diagnostics.Trace.WriteLine($"Loading named systems from {filename}");
+            Console.WriteLine($"Loading named systems from {filename}");
             using (Stream s = File.OpenRead(filename))
             {
                 using (TextReader r = new StreamReader(s))
@@ -714,12 +714,12 @@ namespace EDDNListener
                 }
             }
 
-            System.Diagnostics.Trace.WriteLine("Done");
+            Console.WriteLine("Done");
         }
 
         public static void LoadEdsmSystemsJson(string filename)
         {
-            System.Diagnostics.Trace.WriteLine($"Loading EDSM systems from {filename}");
+            Console.WriteLine($"Loading EDSM systems from {filename}");
             using (Stream s = File.OpenRead(filename))
             {
                 using (TextReader r = new StreamReader(s))
@@ -742,17 +742,17 @@ namespace EDDNListener
                                     PGStarMatch sm = GetStarMatch(name, starpos, edsmid: edsmid);
                                     if (sm.RegionCoords == ByteXYZ.Invalid || sm.RegionRelCoords == UShortXYZ.Invalid)
                                     {
-                                        System.Diagnostics.Trace.WriteLine($"Bad EDSM System: id={edsmid} name=\"{name}\" coords={starpos}");
+                                        Console.WriteLine($"Bad EDSM System: id={edsmid} name=\"{name}\" coords={starpos}");
                                     }
                                 }
 
                                 i++;
                                 if (i % 10000 == 0)
                                 {
-                                    System.Diagnostics.Trace.Write(".");
+                                    Console.Write(".");
                                     if (i % 500000 == 0)
                                     {
-                                        System.Diagnostics.Trace.WriteLine("");
+                                        Console.WriteLine("");
                                     }
                                 }
                             }
@@ -760,12 +760,12 @@ namespace EDDNListener
                     }
                 }
             }
-            System.Diagnostics.Trace.WriteLine("Done");
+            Console.WriteLine("Done");
         }
 
         public static void LoadEddbSystemsCsv(string filename)
         {
-            System.Diagnostics.Trace.WriteLine($"Loading EDDB systems from {filename}");
+            Console.WriteLine($"Loading EDDB systems from {filename}");
 
             using (Stream s = File.OpenRead(filename))
             {
@@ -797,24 +797,24 @@ namespace EDDNListener
 
                             if (sm.RegionCoords == ByteXYZ.Invalid || sm.RegionRelCoords == UShortXYZ.Invalid)
                             {
-                                System.Diagnostics.Trace.WriteLine($"Bad EDDB System: id={eddbid} name=\"{name}\" coords={starpos}");
+                                Console.WriteLine($"Bad EDDB System: id={eddbid} name=\"{name}\" coords={starpos}");
                             }
                         }
 
                         i++;
                         if (i % 10000 == 0)
                         {
-                            System.Diagnostics.Trace.Write(".");
+                            Console.Write(".");
                             if (i % 500000 == 0)
                             {
-                                System.Diagnostics.Trace.WriteLine("");
+                                Console.WriteLine("");
                             }
                         }
                     }
                 }
             }
 
-            System.Diagnostics.Trace.WriteLine("Done");
+            Console.WriteLine("Done");
         }
 
         #endregion
