@@ -469,6 +469,25 @@ namespace EDDNListener
 
             string regionname = GetProcGenRegionNameFromSystemName(sysname, out index, out starclass, ref blkcoords);
 
+            int blocksize = 40960 >> starclass;
+
+            double vx = starpos.X + 49985;
+            double vy = starpos.Y + 40985;
+            double vz = starpos.Z + 24105;
+
+            if (vx < 0 || vx >= 163840 || vy < 0 || vy > 163840 || vz < 0 || vz > 163840)
+            {
+                return PGStarMatch.Invalid;
+            }
+
+            int x = (int)(vx * 32 + 0.5);
+            int y = (int)(vy * 32 + 0.5);
+            int z = (int)(vz * 32 + 0.5);
+
+            int cx = x / blocksize;
+            int cy = y / blocksize;
+            int cz = z / blocksize;
+
             if (regionname != null && starpos != null && !Double.IsNaN(starpos.X) && !Double.IsNaN(starpos.Y) && !Double.IsNaN(starpos.Z))
             {
                 if (ProcGenSectorByName.ContainsKey(regionname))
@@ -494,6 +513,24 @@ namespace EDDNListener
                             basecoords[2] + blkcoords.Z
                         };
                     }
+                    else
+                    {
+                        int bx = (x % 40960) / blocksize;
+                        int by = (y % 40960) / blocksize;
+                        int bz = (z % 40960) / blocksize;
+
+                        if (bx == blkcoords.X && by == blkcoords.Y && bz == blkcoords.Z)
+                        {
+                            ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
+
+                            Console.WriteLine($"New region: {regionname} @ {regioncoords}");
+
+                            ProcGenSectorByCoords[regioncoords] = regionname;
+                            ProcGenSectorByName[regionname] = regioncoords;
+
+                            coords = new int[] { cx, cy, cz };
+                        }
+                    }
                 }
 
                 if (coords == null)
@@ -501,24 +538,6 @@ namespace EDDNListener
                     return PGStarMatch.Invalid;
                 }
 
-                double vx = starpos.X + 49985;
-                double vy = starpos.Y + 40985;
-                double vz = starpos.Z + 24105;
-
-                if (vx < 0 || vx >= 163840 || vy < 0 || vy > 163840 || vz < 0 || vz > 163840)
-                {
-                    return PGStarMatch.Invalid;
-                }
-
-                int x = (int)(vx * 32 + 0.5);
-                int y = (int)(vy * 32 + 0.5);
-                int z = (int)(vz * 32 + 0.5);
-
-                int blocksize = 40960 >> starclass;
-
-                int cx = x / blocksize;
-                int cy = y / blocksize;
-                int cz = z / blocksize;
                 int ix = coords[0];
                 int iy = coords[1];
                 int iz = coords[2];
