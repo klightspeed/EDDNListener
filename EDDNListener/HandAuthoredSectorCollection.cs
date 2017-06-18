@@ -53,7 +53,7 @@ namespace EDDNListener
 
         public HandAuthoredSector[] FindSector(string name)
         {
-            return SectorsByName.ContainsKey(name) ? null : SectorsByName[name].ToArray();
+            return SectorsByName.ContainsKey(name) ? SectorsByName[name].ToArray() : null;
         }
     }
 }
