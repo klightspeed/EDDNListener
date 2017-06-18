@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CsvHelper;
 
 namespace EDDNListener
 {
@@ -689,6 +689,41 @@ namespace EDDNListener
             Console.WriteLine("Done");
         }
 
+        public static void SaveProcGenSectorsJson(string filename)
+        {
+            File.Delete(filename + ".tmp");
+            using (Stream s = File.OpenWrite(filename + ".tmp"))
+            {
+                using (TextWriter w = new StreamWriter(s))
+                {
+                    using (JsonTextWriter writer = new JsonTextWriter(w))
+                    {
+                        writer.Formatting = Formatting.Indented;
+                        writer.WriteStartArray();
+                        foreach (KeyValuePair<ByteXYZ, string> kvp in ProcGenSectorByCoords)
+                        {
+                            writer.WriteStartObject();
+                            writer.Formatting = Formatting.None;
+                            writer.WritePropertyName("name");
+                            writer.WriteValue(kvp.Value);
+                            writer.WritePropertyName("x");
+                            writer.WriteValue(kvp.Key.X);
+                            writer.WritePropertyName("y");
+                            writer.WriteValue(kvp.Key.Y);
+                            writer.WritePropertyName("z");
+                            writer.WriteValue(kvp.Key.Z);
+                            writer.WriteEndObject();
+                            writer.Formatting = Formatting.Indented;
+                        }
+                        writer.WriteEndArray();
+                    }
+                }
+            }
+
+            File.Delete(filename);
+            File.Move(filename + ".tmp", filename);
+        }
+
         public static void LoadNamedSystemsJson(string filename)
         {
             Console.WriteLine($"Loading named systems from {filename}");
@@ -808,45 +843,46 @@ namespace EDDNListener
 
             using (Stream s = File.OpenRead(filename))
             {
-                using (TextFieldParser p = new TextFieldParser(s))
+                using (TextReader r = new StreamReader(s))
                 {
-                    p.TextFieldType = FieldType.Delimited;
-                    p.SetDelimiters(",");
-                    List<string> headers = p.ReadFields().ToList();
-                    int eddbidcol = headers.IndexOf("id");
-                    int edsmidcol = headers.IndexOf("edsm_id");
-                    int namecol = headers.IndexOf("name");
-                    int xcol = headers.IndexOf("x");
-                    int ycol = headers.IndexOf("y");
-                    int zcol = headers.IndexOf("z");
-                    int i = 0;
-
-                    while (!p.EndOfData)
+                    using (CsvParser p = new CsvParser(r))
                     {
-                        string[] fields = p.ReadFields();
-                        uint eddbid = UInt32.Parse(fields[eddbidcol]);
-                        uint edsmid = UInt32.Parse(fields[edsmidcol]);
-                        string name = fields[namecol];
-                        double x, y, z;
+                        List<string> headers = p.Read().ToList();
+                        int eddbidcol = headers.IndexOf("id");
+                        int edsmidcol = headers.IndexOf("edsm_id");
+                        int namecol = headers.IndexOf("name");
+                        int xcol = headers.IndexOf("x");
+                        int ycol = headers.IndexOf("y");
+                        int zcol = headers.IndexOf("z");
+                        int i = 0;
+                        string[] fields;
 
-                        if (Double.TryParse(fields[xcol], out x) && Double.TryParse(fields[ycol], out y) && Double.TryParse(fields[zcol], out z))
+                        while ((fields = p.Read()) != null)
                         {
-                            Vector3 starpos = new Vector3 { X = x, Y = y, Z = z };
-                            PGStarMatch sm = PGStarMatch.GetStarMatch(name, starpos, eddbid: eddbid);
+                            uint eddbid = UInt32.Parse(fields[eddbidcol]);
+                            uint edsmid = UInt32.Parse(fields[edsmidcol]);
+                            string name = fields[namecol];
+                            double x, y, z;
 
-                            if (sm.RegionCoords == ByteXYZ.Invalid || sm.RegionRelCoords == UShortXYZ.Invalid)
+                            if (Double.TryParse(fields[xcol], out x) && Double.TryParse(fields[ycol], out y) && Double.TryParse(fields[zcol], out z))
                             {
-                                Console.WriteLine($"Bad EDDB System: id={eddbid} name=\"{name}\" coords={starpos}");
+                                Vector3 starpos = new Vector3 { X = x, Y = y, Z = z };
+                                PGStarMatch sm = PGStarMatch.GetStarMatch(name, starpos, eddbid: eddbid);
+
+                                if (sm.RegionCoords == ByteXYZ.Invalid || sm.RegionRelCoords == UShortXYZ.Invalid)
+                                {
+                                    Console.WriteLine($"Bad EDDB System: id={eddbid} name=\"{name}\" coords={starpos}");
+                                }
                             }
-                        }
 
-                        i++;
-                        if (i % 10000 == 0)
-                        {
-                            Console.Write(".");
-                            if (i % 500000 == 0)
+                            i++;
+                            if (i % 10000 == 0)
                             {
-                                Console.WriteLine("");
+                                Console.Write(".");
+                                if (i % 500000 == 0)
+                                {
+                                    Console.WriteLine("");
+                                }
                             }
                         }
                     }

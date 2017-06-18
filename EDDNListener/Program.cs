@@ -29,6 +29,7 @@ namespace EDDNListener
             PGStarMatch.LoadNamedSystemsJson(Path.Combine(basedir, "edsystems-all-withcoords.json"));
             PGStarMatch.LoadEdsmSystemsJson(Path.Combine(basedir, "systemsWithCoordinates.json"));
             PGStarMatch.LoadEddbSystemsCsv(Path.Combine(basedir, "systems.csv"));
+            PGStarMatch.SaveProcGenSectorsJson(Path.Combine(basedir, "ProcGen-new.json"));
             Listener listener = new Listener();
             listener.Run();
         }
