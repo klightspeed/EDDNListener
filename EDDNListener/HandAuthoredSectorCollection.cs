@@ -8,12 +8,14 @@ namespace EDDNListener
 {
     public class HandAuthoredSectorCollection : List<HandAuthoredSector>
     {
+        private Dictionary<string, List<HandAuthoredSector>> SectorsByName = new Dictionary<string, List<HandAuthoredSector>>(StringComparer.InvariantCultureIgnoreCase);
+
         public HandAuthoredSectorCollection() { }
         public HandAuthoredSectorCollection(IEnumerable<HandAuthoredSector> sectors) : base(sectors) { }
 
         public void Add(string name, double x, double y, double z, double radius, bool permitlocked = false, double x0 = Double.NaN, double y0 = Double.NaN, double z0 = Double.NaN)
         {
-            base.Add(new HandAuthoredSector
+            HandAuthoredSector sector = new HandAuthoredSector
             {
                 name = name,
                 X = x,
@@ -24,7 +26,16 @@ namespace EDDNListener
                 X0 = double.IsNaN(x0) ? (x - radius) : x0,
                 Y0 = double.IsNaN(y0) ? (y - radius) : y0,
                 Z0 = double.IsNaN(z0) ? (z - radius) : z0,
-            });
+            };
+
+            base.Add(sector);
+
+            if (!SectorsByName.ContainsKey(name))
+            {
+                SectorsByName[name] = new List<HandAuthoredSector>();
+            }
+
+            SectorsByName[name].Add(sector);
         }
 
         public HandAuthoredSector FindSector(Vector3 pos)
@@ -38,6 +49,11 @@ namespace EDDNListener
             }
 
             return null;
+        }
+
+        public HandAuthoredSector[] FindSector(string name)
+        {
+            return SectorsByName.ContainsKey(name) ? null : SectorsByName[name].ToArray();
         }
     }
 }
