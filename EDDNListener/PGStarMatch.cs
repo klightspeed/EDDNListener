@@ -649,6 +649,7 @@ namespace EDDNListener
 
         public static void LoadProcGenSectorsJson(string filename)
         {
+            System.Diagnostics.Trace.WriteLine($"Loading procgen sectors from {filename}");
             using (Stream s = File.OpenRead(filename))
             {
                 using (TextReader r = new StreamReader(s))
@@ -661,10 +662,12 @@ namespace EDDNListener
                     }
                 }
             }
+            System.Diagnostics.Trace.WriteLine("Done");
         }
 
         public static void LoadNamedSystemsJson(string filename)
         {
+            System.Diagnostics.Trace.WriteLine($"Loading named systems from {filename}");
             using (Stream s = File.OpenRead(filename))
             {
                 using (TextReader r = new StreamReader(s))
@@ -710,10 +713,13 @@ namespace EDDNListener
                     regionsys_kvp.Value[i] = sys;
                 }
             }
+
+            System.Diagnostics.Trace.WriteLine("Done");
         }
 
         public static void LoadEdsmSystemsJson(string filename)
         {
+            System.Diagnostics.Trace.WriteLine($"Loading EDSM systems from {filename}");
             using (Stream s = File.OpenRead(filename))
             {
                 using (TextReader r = new StreamReader(s))
@@ -722,6 +728,8 @@ namespace EDDNListener
                     {
                         if (rdr.Read() && rdr.TokenType == JsonToken.StartArray)
                         {
+                            int i = 0;
+
                             while (rdr.Read() && rdr.TokenType == JsonToken.StartObject)
                             {
                                 JObject jo = JObject.Load(rdr);
@@ -737,15 +745,28 @@ namespace EDDNListener
                                         System.Diagnostics.Trace.WriteLine($"Bad EDSM System: id={edsmid} name=\"{name}\" coords={starpos}");
                                     }
                                 }
+
+                                i++;
+                                if (i % 10000 == 0)
+                                {
+                                    System.Diagnostics.Trace.Write(".");
+                                    if (i % 500000 == 0)
+                                    {
+                                        System.Diagnostics.Trace.WriteLine("");
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+            System.Diagnostics.Trace.WriteLine("Done");
         }
 
         public static void LoadEddbSystemsCsv(string filename)
         {
+            System.Diagnostics.Trace.WriteLine($"Loading EDDB systems from {filename}");
+
             using (Stream s = File.OpenRead(filename))
             {
                 using (TextFieldParser p = new TextFieldParser(s))
@@ -759,6 +780,7 @@ namespace EDDNListener
                     int xcol = headers.IndexOf("x");
                     int ycol = headers.IndexOf("y");
                     int zcol = headers.IndexOf("z");
+                    int i = 0;
 
                     while (!p.EndOfData)
                     {
@@ -778,9 +800,21 @@ namespace EDDNListener
                                 System.Diagnostics.Trace.WriteLine($"Bad EDDB System: id={eddbid} name=\"{name}\" coords={starpos}");
                             }
                         }
+
+                        i++;
+                        if (i % 10000 == 0)
+                        {
+                            System.Diagnostics.Trace.Write(".");
+                            if (i % 500000 == 0)
+                            {
+                                System.Diagnostics.Trace.WriteLine("");
+                            }
+                        }
                     }
                 }
             }
+
+            System.Diagnostics.Trace.WriteLine("Done");
         }
 
         #endregion
