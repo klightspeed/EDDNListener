@@ -409,7 +409,7 @@ namespace EDDNListener
                     }
                     else
                     {
-                        sector = HandAuthoredSectors.Sectors.FirstOrDefault(s => s.name == regionname);
+                        sector = HandAuthoredSectors.Sectors.FindSector(regionname)?.First();
                         if (sector != null)
                         {
                             int[] basecoords = sector.GetBaseBlockCoords(starclass);

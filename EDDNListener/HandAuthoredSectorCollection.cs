@@ -11,7 +11,18 @@ namespace EDDNListener
         private Dictionary<string, List<HandAuthoredSector>> SectorsByName = new Dictionary<string, List<HandAuthoredSector>>(StringComparer.InvariantCultureIgnoreCase);
 
         public HandAuthoredSectorCollection() { }
-        public HandAuthoredSectorCollection(IEnumerable<HandAuthoredSector> sectors) : base(sectors) { }
+        public HandAuthoredSectorCollection(IEnumerable<HandAuthoredSector> sectors) : base(sectors)
+        {
+            foreach (HandAuthoredSector sector in sectors)
+            {
+                if (!SectorsByName.ContainsKey(sector.name))
+                {
+                    SectorsByName[sector.name] = new List<HandAuthoredSector>();
+                }
+
+                SectorsByName[sector.name].Add(sector);
+            }
+        }
 
         public void Add(string name, double x, double y, double z, double radius, bool permitlocked = false, double x0 = Double.NaN, double y0 = Double.NaN, double z0 = Double.NaN)
         {
