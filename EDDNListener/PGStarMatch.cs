@@ -707,11 +707,11 @@ namespace EDDNListener
                             writer.WritePropertyName("name");
                             writer.WriteValue(kvp.Value);
                             writer.WritePropertyName("x");
-                            writer.WriteValue(kvp.Key.X);
+                            writer.WriteValue(kvp.Key.X - 39);
                             writer.WritePropertyName("y");
-                            writer.WriteValue(kvp.Key.Y);
+                            writer.WriteValue(kvp.Key.Y - 32);
                             writer.WritePropertyName("z");
-                            writer.WriteValue(kvp.Key.Z);
+                            writer.WriteValue(kvp.Key.Z - 19);
                             writer.WriteEndObject();
                             writer.Formatting = Formatting.Indented;
                         }
