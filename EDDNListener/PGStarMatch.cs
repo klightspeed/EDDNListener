@@ -681,6 +681,8 @@ namespace EDDNListener
                     {
                         if (rdr.Read() && rdr.TokenType == JsonToken.StartArray)
                         {
+                            int i = 0;
+
                             while (rdr.Read() && rdr.TokenType == JsonToken.StartObject)
                             {
                                 JObject jo = JObject.Load(rdr);
@@ -688,15 +690,28 @@ namespace EDDNListener
                                 string pgname = jo.Value<string>("pgname");
                                 string name = jo.Value<string>("name");
                                 JArray ca = (JArray)jo["coords"];
+
                                 if (name != null && ca != null)
                                 {
                                     Vector3 coords = new Vector3 { X = ca[0].Value<double>(), Y = ca[1].Value<double>(), Z = ca[2].Value<double>() };
                                     IdToName[id] = name;
+
                                     if (!SystemsByName.ContainsKey(name))
                                     {
                                         SystemsByName[name] = new List<PGStarMatch>();
                                     }
+
                                     SystemsByName[name].Add(GetStarMatch(pgname, coords));
+                                }
+
+                                i++;
+                                if (i % 10000 == 0)
+                                {
+                                    Console.Write(".");
+                                    if (i % 500000 == 0)
+                                    {
+                                        Console.WriteLine("");
+                                    }
                                 }
                             }
                         }
