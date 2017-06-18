@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
@@ -21,12 +22,13 @@ namespace EDDNListener
 
         static void Main(string[] args)
         {
+            string basedir = args.Length > 0 ? args[0] : ".";
             uint structsize = SizeOf<PGStarMatch>();
             PGStarMatch sm = new PGStarMatch();
-            PGStarMatch.LoadProcGenSectorsJson("ProcGen.json");
-            PGStarMatch.LoadNamedSystemsJson("edsystems-all-withcoords.json");
-            PGStarMatch.LoadEdsmSystemsJson("systemsWithCoords.json");
-            PGStarMatch.LoadEddbSystemsCsv("systems.csv");
+            PGStarMatch.LoadProcGenSectorsJson(Path.Combine(basedir, "ProcGen.json"));
+            PGStarMatch.LoadNamedSystemsJson(Path.Combine(basedir, "edsystems-all-withcoords.json"));
+            PGStarMatch.LoadEdsmSystemsJson(Path.Combine(basedir, "systemsWithCoords.json"));
+            PGStarMatch.LoadEddbSystemsCsv(Path.Combine(basedir, "systems.csv"));
             Listener listener = new Listener();
             listener.Run();
         }
