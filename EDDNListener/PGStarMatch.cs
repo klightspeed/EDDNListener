@@ -496,6 +496,11 @@ namespace EDDNListener
                     }
                 }
 
+                if (coords == null)
+                {
+                    return PGStarMatch.Invalid;
+                }
+
                 double vx = starpos.X + 49985;
                 double vy = starpos.Y + 40985;
                 double vz = starpos.Z + 24105;
