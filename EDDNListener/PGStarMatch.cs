@@ -16,10 +16,9 @@ namespace EDDNListener
         #region Lookup tables
         private static Dictionary<ByteXYZ, string> ProcGenSectorByCoords = new Dictionary<ByteXYZ, string>();
         private static Dictionary<string, ByteXYZ> ProcGenSectorByName = new Dictionary<string, ByteXYZ>(StringComparer.InvariantCultureIgnoreCase);
-        private static Dictionary<string, List<PGStarMatch>> SystemsByName = new Dictionary<string, List<PGStarMatch>>(StringComparer.InvariantCultureIgnoreCase);
+        private static Dictionary<string, List<long>> SystemsByName = new Dictionary<string, List<long>>(StringComparer.InvariantCultureIgnoreCase);
         private static Dictionary<long, string> IdToName = new Dictionary<long, string>();
-        private static List<PGStarMatch> NamedSystems;
-        private static Dictionary<ByteXYZ, PGStarMatch[]> NamedSystemsBySector = new Dictionary<ByteXYZ, PGStarMatch[]>();
+        private static Dictionary<ByteXYZ, long[]> NamedSystemsBySector = new Dictionary<ByteXYZ, long[]>();
         private static Dictionary<ByteXYZ, string[]> SystemNamesBySector = new Dictionary<ByteXYZ, string[]>();
         private static Dictionary<long, PGStarMatch> SystemsById = new Dictionary<long, PGStarMatch>();
         private static long[] EdsmIdToSystemId = new long[0];
@@ -386,7 +385,7 @@ namespace EDDNListener
         {
             if (SystemsByName.ContainsKey(sysname))
             {
-                return SystemsByName[sysname].ToArray();
+                return SystemsByName[sysname].Select(i => SystemsById[i]).ToArray();
             }
             else
             {
@@ -450,7 +449,7 @@ namespace EDDNListener
 
             if (SystemsByName.ContainsKey(sysname))
             {
-                List<PGStarMatch> matches = SystemsByName[sysname];
+                List<PGStarMatch> matches = SystemsByName[sysname].Select(i => SystemsById[i]).ToList();
 
                 if (matches.Count == 1)
                 {
@@ -614,7 +613,7 @@ namespace EDDNListener
             {
                 if (SystemsByName.ContainsKey(sysname))
                 {
-                    List<PGStarMatch> matches = SystemsByName[sysname];
+                    List<PGStarMatch> matches = SystemsByName[sysname].Select(s => SystemsById[s]).ToList();
                     foreach (PGStarMatch sm in matches)
                     {
                         Vector3 smcoords = sm.Coords;
@@ -752,13 +751,18 @@ namespace EDDNListener
                                 {
                                     Vector3 coords = new Vector3 { X = ca[0].Value<double>(), Y = ca[1].Value<double>(), Z = ca[2].Value<double>() };
                                     IdToName[id] = name;
+                                    PGStarMatch sm = GetStarMatch(pgname, coords);
+                                    if (!SystemsById.ContainsKey(sm.Id))
+                                    {
+                                        SystemsById[sm.Id] = sm;
+                                    }
 
                                     if (!SystemsByName.ContainsKey(name))
                                     {
-                                        SystemsByName[name] = new List<PGStarMatch>();
+                                        SystemsByName[name] = new List<long>();
                                     }
 
-                                    SystemsByName[name].Add(GetStarMatch(pgname, coords));
+                                    SystemsByName[name].Add(sm.Id);
                                 }
 
                                 i++;
@@ -776,18 +780,18 @@ namespace EDDNListener
                 }
             }
 
-            NamedSystems = SystemsByName.Values.SelectMany(v => v).ToList();
-            NamedSystemsBySector = NamedSystems.GroupBy(s => s.RegionCoords).OrderByDescending(g => g.Count()).ToDictionary(g => g.Key, g => g.ToArray());
+            NamedSystemsBySector = SystemsById.Values.GroupBy(s => s.RegionCoords).OrderByDescending(g => g.Count()).ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToArray());
 
-            foreach (KeyValuePair<ByteXYZ, PGStarMatch[]> regionsys_kvp in NamedSystemsBySector.ToList())
+            foreach (KeyValuePair<ByteXYZ, long[]> regionsys_kvp in NamedSystemsBySector.ToList())
             {
                 SystemNamesBySector[regionsys_kvp.Key] = new string[regionsys_kvp.Value.Length];
                 for (int i = 0; i < regionsys_kvp.Value.Length; i++)
                 {
-                    PGStarMatch sys = regionsys_kvp.Value[i];
+                    long id = regionsys_kvp.Value[i];
+                    PGStarMatch sys = SystemsById[id];
                     SystemNamesBySector[regionsys_kvp.Key][i] = IdToName[sys.Id];
                     sys._NameIndexInSector = (ushort)(i + 1);
-                    regionsys_kvp.Value[i] = sys;
+                    SystemsById[id] = sys;
                 }
             }
 
@@ -817,6 +821,7 @@ namespace EDDNListener
                                 {
                                     Vector3 starpos = new Vector3 { X = co.Value<double>("x"), Y = co.Value<double>("y"), Z = co.Value<double>("z") };
                                     PGStarMatch sm = GetStarMatch(name, starpos, edsmid: edsmid);
+
                                     if (sm.RegionCoords == ByteXYZ.Invalid || sm.RegionRelCoords == UShortXYZ.Invalid)
                                     {
                                         Console.WriteLine($"Bad EDSM System: id={edsmid} name=\"{name}\" coords={starpos}");
@@ -827,6 +832,7 @@ namespace EDDNListener
                                         {
                                             Array.Resize(ref EdsmIdToSystemId, (int)edsmid + 100000);
                                         }
+
                                         EdsmIdToSystemId[edsmid] = sm.Id;
                                     }
                                 }
@@ -870,19 +876,17 @@ namespace EDDNListener
 
                         while ((fields = p.Read()) != null)
                         {
-                            double x, y, z;
                             uint edsmid;
                             uint eddbid;
 
-                            if (UInt32.TryParse(fields[eddbidcol], out eddbid) && UInt32.TryParse(fields[edsmidcol], out edsmid) && Double.TryParse(fields[xcol], out x) && Double.TryParse(fields[ycol], out y) && Double.TryParse(fields[zcol], out z))
+                            if (UInt32.TryParse(fields[eddbidcol], out eddbid) && UInt32.TryParse(fields[edsmidcol], out edsmid))
                             {
-                                string name = fields[namecol];
-                                Vector3 starpos = new Vector3 { X = x, Y = y, Z = z };
-                                PGStarMatch sm = PGStarMatch.GetStarMatch(name, starpos, edsmid, eddbid);
-
-                                if (sm.RegionCoords == ByteXYZ.Invalid || sm.RegionRelCoords == UShortXYZ.Invalid)
+                                if (edsmid < EdsmIdToSystemId.Length && edsmid != 0)
                                 {
-                                    Console.WriteLine($"Bad EDDB System: id={eddbid} name=\"{name}\" coords={starpos}");
+                                    long id = EdsmIdToSystemId[edsmid];
+                                    PGStarMatch sm = SystemsById[id];
+                                    sm._EddbId = eddbid;
+                                    SystemsById[id] = sm;
                                 }
                             }
 
