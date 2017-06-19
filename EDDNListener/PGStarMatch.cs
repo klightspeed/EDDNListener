@@ -603,7 +603,7 @@ namespace EDDNListener
 
                     if (cx != ix || cy != iy || cz != iz)
                     {
-                        Vector3 error = new Vector3 { X = coords[0] * blocksize / 32.0 - 49985, Y = coords[1] * blocksize / 32.0 - 40960, Z = coords[2] * blocksize / 32.0 - 24105 };
+                        Vector3 error = new Vector3 { X = coords[0] * blocksize / 32.0 - 49985, Y = coords[1] * blocksize / 32.0 - 40985, Z = coords[2] * blocksize / 32.0 - 24105 };
                         int[] bc = sm.BlockCoords;
                         Console.WriteLine($"Warning: System {sysname} Coord mismatch - pgname={sm.HPGName} | starpos={starpos} | namepos={error} | nc=({coords[0]}, {coords[1]}, {coords[2]}) | pc=({bc[0]}, {bc[1]}, {bc[2]})");
                     }
