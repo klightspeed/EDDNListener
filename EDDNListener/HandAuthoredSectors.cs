@@ -565,6 +565,7 @@ namespace EDDNListener
                 { "Praei4", -1000, -555, 54000,  512, true },
                 { "Praei5", -1000, 455, 54000,  512, true },
                 { "Praei6", -500, -100, 53500,  512, true },
+                { "Sidgoir", -24120, 10, -1220, 100, true },
             };
 
             return new HandAuthoredSectorCollection(sectors.GroupBy(s => s.Radius).OrderBy(g => g.Key).SelectMany(g => g));
