@@ -550,7 +550,7 @@ namespace EDDNListener
 
                     if (cx != ix || cy != iy || cz != iz)
                     {
-                        Vector3 error = new Vector3 { X = coords[0] * blocksize, Y = coords[1] * blocksize, Z = coords[2] * blocksize };
+                        Vector3 error = new Vector3 { X = coords[0] * blocksize / 32.0 - 49985, Y = coords[1] * blocksize / 32.0 - 40960, Z = coords[2] * blocksize / 32.0 - 24105 };
                         Console.WriteLine($"Warning: System {sysname} Coord mismatch - starpos={starpos} | match={sm.Coords} | namepos={error}");
                     }
 
@@ -590,7 +590,7 @@ namespace EDDNListener
 
                     if (cx != ix || cy != iy || cz != iz)
                     {
-                        Vector3 error = new Vector3 { X = coords[0] * blocksize, Y = coords[1] * blocksize, Z = coords[2] * blocksize };
+                        Vector3 error = new Vector3 { X = coords[0] * blocksize / 32.0 - 49985, Y = coords[1] * blocksize / 32.0 - 40960, Z = coords[2] * blocksize / 32.0 - 24105 };
                         Console.WriteLine($"Warning: System {sysname} Coord mismatch - pgname={sm.HPGName} | starpos={starpos} | namepos={error}");
                     }
 
