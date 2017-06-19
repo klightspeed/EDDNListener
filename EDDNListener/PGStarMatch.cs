@@ -22,6 +22,7 @@ namespace EDDNListener
         private static Dictionary<ByteXYZ, PGStarMatch[]> NamedSystemsBySector = new Dictionary<ByteXYZ, PGStarMatch[]>();
         private static Dictionary<ByteXYZ, string[]> SystemNamesBySector = new Dictionary<ByteXYZ, string[]>();
         private static Dictionary<long, PGStarMatch> SystemsById = new Dictionary<long, PGStarMatch>();
+        private static long[] EdsmIdToSystemId = new long[0];
 
         public static readonly PGStarMatch Invalid = new PGStarMatch
         {
@@ -553,14 +554,14 @@ namespace EDDNListener
                 {
                     PGStarMatch sm = SystemsById[id];
 
-                    if ((edsmid != 0 && sm._EdsmId == 0) || (eddbid != 0 && sm._EddbId == 0))
+                    if ((eddbid == 0 && edsmid != 0 && sm._EdsmId == 0) || (sm._EdsmId == edsmid && eddbid != 0 && sm._EddbId == 0))
                     {
-                        if (edsmid != 0 && sm._EdsmId == 0)
+                        if (eddbid == 0 && edsmid != 0 && sm._EdsmId == 0)
                         {
                             sm._EdsmId = edsmid;
                         }
 
-                        if (eddbid != 0 && sm._EddbId == 0)
+                        if (sm._EdsmId == edsmid && eddbid != 0 && sm._EddbId == 0)
                         {
                             sm._EddbId = eddbid;
                         }
@@ -818,6 +819,14 @@ namespace EDDNListener
                                     {
                                         Console.WriteLine($"Bad EDSM System: id={edsmid} name=\"{name}\" coords={starpos}");
                                     }
+                                    else
+                                    {
+                                        if (EdsmIdToSystemId.Length < edsmid)
+                                        {
+                                            Array.Resize(ref EdsmIdToSystemId, (int)edsmid + 100000);
+                                        }
+                                        EdsmIdToSystemId[edsmid] = sm.Id;
+                                    }
                                 }
 
                                 i++;
@@ -860,14 +869,15 @@ namespace EDDNListener
                         while ((fields = p.Read()) != null)
                         {
                             uint eddbid = UInt32.Parse(fields[eddbidcol]);
-                            uint edsmid = UInt32.Parse(fields[edsmidcol]);
+
                             string name = fields[namecol];
                             double x, y, z;
+                            uint edsmid;
 
-                            if (Double.TryParse(fields[xcol], out x) && Double.TryParse(fields[ycol], out y) && Double.TryParse(fields[zcol], out z))
+                            if (UInt32.TryParse(fields[edsmidcol], out edsmid) && Double.TryParse(fields[xcol], out x) && Double.TryParse(fields[ycol], out y) && Double.TryParse(fields[zcol], out z))
                             {
                                 Vector3 starpos = new Vector3 { X = x, Y = y, Z = z };
-                                PGStarMatch sm = PGStarMatch.GetStarMatch(name, starpos, eddbid: eddbid);
+                                PGStarMatch sm = PGStarMatch.GetStarMatch(name, starpos, edsmid, eddbid);
 
                                 if (sm.RegionCoords == ByteXYZ.Invalid || sm.RegionRelCoords == UShortXYZ.Invalid)
                                 {
