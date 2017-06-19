@@ -248,8 +248,8 @@ namespace EDDNListener
 
         #endregion
 
-        #region Instance Methods
-        public string GetPgSuffix(ByteXYZ blockcoords, int starclass)
+        #region Static Methods
+        public static string GetPgSuffix(ByteXYZ blockcoords, int starclass)
         {
             int blocknr = blockcoords.X + ((int)blockcoords.Y << 7) + ((int)blockcoords.Z << 14);
             char v1 = (char)((blocknr % 26) + 'A');
@@ -263,14 +263,12 @@ namespace EDDNListener
             return $"{v1}{v2}-{v3} {sc}{v4}";
         }
 
-        public string GetPgSuffix(ByteXYZ blockcoords, int starclass, int starseq)
+        public static string GetPgSuffix(ByteXYZ blockcoords, int starclass, int starseq)
         {
             string pgbsuffix = GetPgSuffix(blockcoords, starclass);
             return $"{pgbsuffix}{starseq}";
         }
-        #endregion
 
-        #region Static Methods
         public static ByteXYZ RegionCoordsFromId(long id)
         {
             sbyte x, y, z;
@@ -544,16 +542,17 @@ namespace EDDNListener
                 int iy = coords[1];
                 int iz = coords[2];
 
-                if (cx != ix || cy != iy || cz != iz)
-                {
-                    return PGStarMatch.Invalid;
-                }
-
                 long id = GetProcGenId(coords, starclass, index);
 
                 if (SystemsById.ContainsKey(id))
                 {
                     PGStarMatch sm = SystemsById[id];
+
+                    if (cx != ix || cy != iy || cz != iz)
+                    {
+                        Vector3 error = new Vector3 { X = coords[0] * blocksize, Y = coords[1] * blocksize, Z = coords[2] * blocksize };
+                        Console.WriteLine($"Warning: System {sysname} Coord mismatch - starpos={starpos} | match={sm.Coords} | namepos={error}");
+                    }
 
                     if ((eddbid == 0 && edsmid != 0 && sm._EdsmId == 0) || (sm._EdsmId == edsmid && eddbid != 0 && sm._EddbId == 0))
                     {
@@ -588,6 +587,12 @@ namespace EDDNListener
                         _EdsmId = edsmid,
                         _EddbId = eddbid
                     };
+
+                    if (cx != ix || cy != iy || cz != iz)
+                    {
+                        Vector3 error = new Vector3 { X = coords[0] * blocksize, Y = coords[1] * blocksize, Z = coords[2] * blocksize };
+                        Console.WriteLine($"Warning: System {sysname} Coord mismatch - pgname={sm.HPGName} | starpos={starpos} | namepos={error}");
+                    }
 
                     SystemsById[id] = sm;
                     return sm;
