@@ -817,7 +817,7 @@ namespace EDDNListener
                                 uint edsmid = jo.Value<uint>("id");
                                 string name = jo.Value<string>("name");
                                 JObject co = (JObject)jo["coords"];
-                                if (co != null)
+                                if (co != null && edsmid != 0)
                                 {
                                     Vector3 starpos = new Vector3 { X = co.Value<double>("x"), Y = co.Value<double>("y"), Z = co.Value<double>("z") };
                                     PGStarMatch sm = GetStarMatch(name, starpos, edsmid: edsmid);
@@ -884,9 +884,12 @@ namespace EDDNListener
                                 if (edsmid < EdsmIdToSystemId.Length && edsmid != 0)
                                 {
                                     long id = EdsmIdToSystemId[edsmid];
-                                    PGStarMatch sm = SystemsById[id];
-                                    sm._EddbId = eddbid;
-                                    SystemsById[id] = sm;
+                                    if (id != 0)
+                                    {
+                                        PGStarMatch sm = SystemsById[id];
+                                        sm._EddbId = eddbid;
+                                        SystemsById[id] = sm;
+                                    }
                                 }
                             }
 
