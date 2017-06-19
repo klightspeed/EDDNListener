@@ -534,15 +534,20 @@ namespace EDDNListener
                         {
                             ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
                             ByteXYZ relcoords = new ByteXYZ { X = (sbyte)bx, Y = (sbyte)by, Z = (sbyte)bz };
+                            string pgregion = regionname;
 
-                            Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={regionname} {GetPgSuffix(relcoords, starclass, index)}");
+                            if (ProcGenSectorByCoords.ContainsKey(regioncoords))
+                            {
+                                pgregion = ProcGenSectorByCoords[regioncoords];
+                            }
+
+                            Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={pgregion} {GetPgSuffix(relcoords, starclass, index)}");
                         }
                     }
                 }
 
                 if (coords == null)
                 {
-                    Console.WriteLine("Coords unknown");
                     return PGStarMatch.Invalid;
                 }
 
@@ -558,7 +563,7 @@ namespace EDDNListener
 
                     if (cx != ix || cy != iy || cz != iz)
                     {
-                        Vector3 error = new Vector3 { X = coords[0] * blocksize / 32.0 - 49985, Y = coords[1] * blocksize / 32.0 - 40960, Z = coords[2] * blocksize / 32.0 - 24105 };
+                        Vector3 error = new Vector3 { X = coords[0] * blocksize / 32.0 - 49985, Y = coords[1] * blocksize / 32.0 - 40985, Z = coords[2] * blocksize / 32.0 - 24105 };
                         Console.WriteLine($"Warning: System {sysname} Coord mismatch - starpos={starpos} | match={sm.Coords} | namepos={error}");
                     }
 
