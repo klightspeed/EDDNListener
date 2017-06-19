@@ -346,12 +346,14 @@ namespace EDDNListener
             if (i < 9) return null;                                    // a bc-d e0
             if (_s[i] < '0' || _s[i] > '9') return null;               // cepheus dark region a sector xy-z a1-[0]
             while (i > 8 && _s[i] >= '0' && _s[i] <= '9') i--;
+            if (i < _s.Length - 6) return null;
             index = Int32.Parse(_s.Substring(i + 1));
             if (_s[i] == '-')                                          // cepheus dark region a sector xy-z a1[-]0
             {
                 i--;
                 int vend = i;
                 while (i > 8 && _s[i] >= '0' && _s[i] <= '9') i--;     // cepheus dark region a sector xy-z a[1]-0
+                if (i < vend - 4) return null;
                 blknum = Int32.Parse(_s.Substring(i + 1, vend - i));
             }
             if (_s[i] < 'a' || _s[i] > 'h') return null;               // cepheus dark region a sector xy-z [a]1-0
