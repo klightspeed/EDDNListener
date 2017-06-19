@@ -530,11 +530,19 @@ namespace EDDNListener
 
                             coords = new int[] { cx, cy, cz };
                         }
+                        else
+                        {
+                            ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
+                            ByteXYZ relcoords = new ByteXYZ { X = (sbyte)bx, Y = (sbyte)by, Z = (sbyte)bz };
+
+                            Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={regionname} {GetPgSuffix(relcoords, starclass, index)}");
+                        }
                     }
                 }
 
                 if (coords == null)
                 {
+                    Console.WriteLine("Coords unknown");
                     return PGStarMatch.Invalid;
                 }
 
@@ -591,7 +599,8 @@ namespace EDDNListener
                     if (cx != ix || cy != iy || cz != iz)
                     {
                         Vector3 error = new Vector3 { X = coords[0] * blocksize / 32.0 - 49985, Y = coords[1] * blocksize / 32.0 - 40960, Z = coords[2] * blocksize / 32.0 - 24105 };
-                        Console.WriteLine($"Warning: System {sysname} Coord mismatch - pgname={sm.HPGName} | starpos={starpos} | namepos={error}");
+                        int[] bc = sm.BlockCoords;
+                        Console.WriteLine($"Warning: System {sysname} Coord mismatch - pgname={sm.HPGName} | starpos={starpos} | namepos={error} | nc=({coords[0]}, {coords[1]}, {coords[2]}) | pc=({bc[0]}, {bc[1]}, {bc[2]})");
                     }
 
                     SystemsById[id] = sm;
@@ -889,7 +898,7 @@ namespace EDDNListener
                                 if (edsmid < EdsmIdToSystemId.Length && edsmid != 0)
                                 {
                                     long id = EdsmIdToSystemId[edsmid];
-                                    if (id != 0)
+                                    if (id != 0 && SystemsById.ContainsKey(id))
                                     {
                                         PGStarMatch sm = SystemsById[id];
                                         sm._EddbId = eddbid;
