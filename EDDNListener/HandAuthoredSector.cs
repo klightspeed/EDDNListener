@@ -45,7 +45,7 @@ namespace EDDNListener
             else
             {
                 ByteXYZ blockcoords = new ByteXYZ { X = (sbyte)bc[0], Y = (sbyte)bc[1], Z = (sbyte)bc[2] };
-                string suffix = m.GetPgSuffix(blockcoords, m.StarClass, m.StarSeq);
+                string suffix = PGStarMatch.GetPgSuffix(blockcoords, m.StarClass, m.StarSeq);
 
                 return blockcoords;
             }
