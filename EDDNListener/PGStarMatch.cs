@@ -868,14 +868,13 @@ namespace EDDNListener
 
                         while ((fields = p.Read()) != null)
                         {
-                            uint eddbid = UInt32.Parse(fields[eddbidcol]);
-
-                            string name = fields[namecol];
                             double x, y, z;
                             uint edsmid;
+                            uint eddbid;
 
-                            if (UInt32.TryParse(fields[edsmidcol], out edsmid) && Double.TryParse(fields[xcol], out x) && Double.TryParse(fields[ycol], out y) && Double.TryParse(fields[zcol], out z))
+                            if (UInt32.TryParse(fields[eddbidcol], out eddbid) && UInt32.TryParse(fields[edsmidcol], out edsmid) && Double.TryParse(fields[xcol], out x) && Double.TryParse(fields[ycol], out y) && Double.TryParse(fields[zcol], out z))
                             {
+                                string name = fields[namecol];
                                 Vector3 starpos = new Vector3 { X = x, Y = y, Z = z };
                                 PGStarMatch sm = PGStarMatch.GetStarMatch(name, starpos, edsmid, eddbid);
 
