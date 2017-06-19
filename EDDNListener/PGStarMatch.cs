@@ -821,7 +821,7 @@ namespace EDDNListener
                                     }
                                     else
                                     {
-                                        if (EdsmIdToSystemId.Length < edsmid)
+                                        if (EdsmIdToSystemId.Length <= edsmid)
                                         {
                                             Array.Resize(ref EdsmIdToSystemId, (int)edsmid + 100000);
                                         }
