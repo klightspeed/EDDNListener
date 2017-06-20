@@ -99,7 +99,7 @@ namespace EDDNListener
         private static HashSet<string> C2PrefixSuffix2 = new HashSet<string>(new string[]
         {
             "Eo", "Oo", "Eu", "Ou", "Ae", "Ai", "Eae", "Ao", "Au", "Aae"
-        });
+        }, StringComparer.InvariantCultureIgnoreCase);
 
         // Vowelish C1 prefixes
         private static HashSet<string> C1PrefixInfix2 = new HashSet<string>(new string[]
@@ -107,10 +107,10 @@ namespace EDDNListener
             "Eo", "Oo", "Eu", "Ou", "Ae", "Ai", "Eae", "Ao",
             "Au", "Aae", "A", "Io", "E", "I", "O", "Ea",
             "U", "Ee", "Ei", "Oe"
-        });
+        }, StringComparer.InvariantCultureIgnoreCase);
 
         // Prefixes using short run lengths
-        private static Dictionary<string, int> PrefixRunLengths = new Dictionary<string, int>
+        private static Dictionary<string, int> PrefixRunLengths = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase)
         {
             { "Eu",   31 }, { "Sly",   4 }, { "Tz",    1 }, { "Phl",  13 },
             { "Ae",   12 }, { "Hyp",  25 }, { "Kyl",  30 }, { "Phr",  10 },
@@ -125,7 +125,7 @@ namespace EDDNListener
         };
 
         // Infixes using short run lengths
-        private static Dictionary<string, int> InfixRunLengths = new Dictionary<string, int>
+        private static Dictionary<string, int> InfixRunLengths = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase)
         {
             // Sequence 1
             { "oi",   88 }, { "ue",  147 }, { "oa",   57 },
@@ -136,10 +136,10 @@ namespace EDDNListener
 
         private static FragmentInfo[] Fragments = FillFragments(Prefixes, Infixes1, Infixes2, Suffixes1, Suffixes2);
 
-        private static Dictionary<string, int> PrefixOffsets = new Dictionary<string, int>();
+        private static Dictionary<string, int> PrefixOffsets = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
         private static int PrefixTotalRunLength = FillOffsets(Prefixes, PrefixRunLengths, PrefixOffsets, 35);
 
-        private static Dictionary<string, int> InfixOffsets = new Dictionary<string, int>();
+        private static Dictionary<string, int> InfixOffsets = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
         private static int Infix1TotalRunLength = FillOffsets(Infixes1, InfixRunLengths, InfixOffsets, Suffixes2.Length);
         private static int Infix2TotalRunLength = FillOffsets(Infixes2, InfixRunLengths, InfixOffsets, Suffixes1.Length);
 
@@ -168,7 +168,7 @@ namespace EDDNListener
 
         private static FragmentInfo[] FillFragments(string[] prefixes, string[] infixes1, string[] infixes2, string[] suffixes1, string[] suffixes2)
         {
-            Dictionary<string, FragmentInfo> frags = new Dictionary<string, FragmentInfo>();
+            Dictionary<string, FragmentInfo> frags = new Dictionary<string, FragmentInfo>(StringComparer.InvariantCultureIgnoreCase);
 
             for (int i = 0; i < prefixes.Length; i++)
             {
@@ -333,6 +333,7 @@ namespace EDDNListener
 
             while (current != "")
             {
+                current = current.Trim();
                 FragmentInfo frag = Fragments.FirstOrDefault(f => current.StartsWith(f.Value));
                 if (frag.Value == null)
                 {
