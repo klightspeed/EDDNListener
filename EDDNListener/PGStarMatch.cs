@@ -499,23 +499,31 @@ namespace EDDNListener
                     int by = (y % 40960) / blocksize;
                     int bz = (z % 40960) / blocksize;
                     ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
+                    ByteXYZ nregcoords = PGSectors.GetSectorPos(regionname);
                     string pgregion = PGSectors.GetSectorName(regioncoords);
 
-                    if (bx == blkcoords.X && by == blkcoords.Y && bz == blkcoords.Z)
+                    if (bx == blkcoords.X && by == blkcoords.Y && bz == blkcoords.Z && nregcoords == regioncoords)
                     {
                         coords = new int[] { cx, cy, cz };
                     }
                     else
                     {
                         ByteXYZ relcoords = new ByteXYZ { X = (sbyte)bx, Y = (sbyte)by, Z = (sbyte)bz };
-                        ByteXYZ nregcoords = PGSectors.GetSectorPos(regionname);
-                        Vector3 namecoords = new Vector3
+
+                        if (nregcoords == ByteXYZ.Invalid)
                         {
-                            X = (nregcoords.X * 40960 + blkcoords.X * blocksize) / 32.0 - 49985,
-                            Y = (nregcoords.Y * 40960 + blkcoords.Y * blocksize) / 32.0 - 40985,
-                            Z = (nregcoords.Z * 40960 + blkcoords.Z * blocksize) / 32.0 - 24105
-                        };
-                        Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={pgregion} {GetPgSuffix(relcoords, starclass, index)} | namecoords={namecoords}");
+                            Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={pgregion} {GetPgSuffix(relcoords, starclass, index)}");
+                        }
+                        else
+                        {
+                            Vector3 namecoords = new Vector3
+                            {
+                                X = (nregcoords.X * 40960 + blkcoords.X * blocksize) / 32.0 - 49985,
+                                Y = (nregcoords.Y * 40960 + blkcoords.Y * blocksize) / 32.0 - 40985,
+                                Z = (nregcoords.Z * 40960 + blkcoords.Z * blocksize) / 32.0 - 24105
+                            };
+                            Console.WriteLine($"System {sysname}: Bad coordinates for sector {regionname} @ {regioncoords} - coordname={pgregion} {GetPgSuffix(relcoords, starclass, index)} | namecoords={namecoords}");
+                        }
                         return PGStarMatch.Invalid;
                     }
                 }
