@@ -511,9 +511,9 @@ namespace EDDNListener
                         ByteXYZ nregcoords = PGSectors.GetSectorPos(regionname);
                         Vector3 namecoords = new Vector3
                         {
-                            X = nregcoords.X * 40960 + blkcoords.X * blocksize - 49985,
-                            Y = nregcoords.Y * 40960 + blkcoords.Y * blocksize - 40985,
-                            Z = nregcoords.Z * 40960 + blkcoords.Z * blocksize - 24105
+                            X = (nregcoords.X * 40960 + blkcoords.X * blocksize) / 32.0 - 49985,
+                            Y = (nregcoords.Y * 40960 + blkcoords.Y * blocksize) / 32.0 - 40985,
+                            Z = (nregcoords.Z * 40960 + blkcoords.Z * blocksize) / 32.0 - 24105
                         };
                         Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={pgregion} {GetPgSuffix(relcoords, starclass, index)} | namecoords={namecoords}");
                         return PGStarMatch.Invalid;
