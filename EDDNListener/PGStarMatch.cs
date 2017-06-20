@@ -14,8 +14,6 @@ namespace EDDNListener
     public struct PGStarMatch
     {
         #region Lookup tables
-        private static Dictionary<ByteXYZ, string> ProcGenSectorByCoords = new Dictionary<ByteXYZ, string>();
-        private static Dictionary<string, ByteXYZ> ProcGenSectorByName = new Dictionary<string, ByteXYZ>(StringComparer.InvariantCultureIgnoreCase);
         private static Dictionary<string, List<long>> SystemsByName = new Dictionary<string, List<long>>(StringComparer.InvariantCultureIgnoreCase);
         private static Dictionary<long, string> IdToName = new Dictionary<long, string>();
         private static Dictionary<ByteXYZ, long[]> NamedSystemsBySector = new Dictionary<ByteXYZ, long[]>();
@@ -180,14 +178,7 @@ namespace EDDNListener
         {
             get
             {
-                if (ProcGenSectorByCoords.ContainsKey(this.RegionCoords))
-                {
-                    return ProcGenSectorByCoords[this.RegionCoords];
-                }
-                else
-                {
-                    return null;
-                }
+                return PGSectors.GetSectorName(this.RegionCoords);
             }
         }
 
@@ -397,27 +388,28 @@ namespace EDDNListener
 
                 if (regionname != null)
                 {
-                    if (ProcGenSectorByName.ContainsKey(regionname))
+                    sector = HandAuthoredSectors.Sectors.FindSector(regionname)?.First();
+                    if (sector != null)
                     {
-                        ByteXYZ regioncoords = ProcGenSectorByName[regionname];
+                        int[] basecoords = sector.GetBaseBlockCoords(starclass);
                         coords = new int[]
                         {
-                            (regioncoords.X << starclass) + blkcoords.X,
-                            (regioncoords.Y << starclass) + blkcoords.Y,
-                            (regioncoords.Z << starclass) + blkcoords.Z
+                            basecoords[0] + blkcoords.X,
+                            basecoords[1] + blkcoords.Y,
+                            basecoords[2] + blkcoords.Z
                         };
                     }
                     else
                     {
-                        sector = HandAuthoredSectors.Sectors.FindSector(regionname)?.First();
-                        if (sector != null)
+                        ByteXYZ regioncoords = PGSectors.GetSectorPos(regionname);
+                        if (regioncoords != ByteXYZ.Invalid)
                         {
-                            int[] basecoords = sector.GetBaseBlockCoords(starclass);
+                            string _regionname = PGSectors.GetSectorName(regioncoords);
                             coords = new int[]
                             {
-                                basecoords[0] + blkcoords.X,
-                                basecoords[1] + blkcoords.Y,
-                                basecoords[2] + blkcoords.Z
+                                (regioncoords.X << starclass) + blkcoords.X,
+                                (regioncoords.Y << starclass) + blkcoords.Y,
+                                (regioncoords.Z << starclass) + blkcoords.Z
                             };
                         }
                     }
@@ -490,65 +482,35 @@ namespace EDDNListener
 
             if (regionname != null && starpos != null && !Double.IsNaN(starpos.X) && !Double.IsNaN(starpos.Y) && !Double.IsNaN(starpos.Z))
             {
-                if (ProcGenSectorByName.ContainsKey(regionname))
+                sector = HandAuthoredSectors.Sectors.FindSector(regionname)?.First();
+                if (sector != null)
                 {
-                    ByteXYZ regioncoords = ProcGenSectorByName[regionname];
+                    int[] basecoords = sector.GetBaseBlockCoords(starclass);
                     coords = new int[]
                     {
-                        (regioncoords.X << starclass) + blkcoords.X,
-                        (regioncoords.Y << starclass) + blkcoords.Y,
-                        (regioncoords.Z << starclass) + blkcoords.Z
+                        basecoords[0] + blkcoords.X,
+                        basecoords[1] + blkcoords.Y,
+                        basecoords[2] + blkcoords.Z
                     };
                 }
                 else
                 {
-                    sector = HandAuthoredSectors.Sectors.FindSector(regionname)?.First();
-                    if (sector != null)
+                    int bx = (x % 40960) / blocksize;
+                    int by = (y % 40960) / blocksize;
+                    int bz = (z % 40960) / blocksize;
+                    ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
+                    string pgregion = PGSectors.GetSectorName(regioncoords);
+
+                    if (bx == blkcoords.X && by == blkcoords.Y && bz == blkcoords.Z)
                     {
-                        int[] basecoords = sector.GetBaseBlockCoords(starclass);
-                        coords = new int[]
-                        {
-                            basecoords[0] + blkcoords.X,
-                            basecoords[1] + blkcoords.Y,
-                            basecoords[2] + blkcoords.Z
-                        };
+                        coords = new int[] { cx, cy, cz };
                     }
                     else
                     {
-                        int bx = (x % 40960) / blocksize;
-                        int by = (y % 40960) / blocksize;
-                        int bz = (z % 40960) / blocksize;
-
-                        if (bx == blkcoords.X && by == blkcoords.Y && bz == blkcoords.Z)
-                        {
-                            ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
-
-                            Console.WriteLine($"New region: {regionname} @ {regioncoords}");
-
-                            ProcGenSectorByCoords[regioncoords] = regionname;
-                            ProcGenSectorByName[regionname] = regioncoords;
-
-                            coords = new int[] { cx, cy, cz };
-                        }
-                        else
-                        {
-                            ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
-                            ByteXYZ relcoords = new ByteXYZ { X = (sbyte)bx, Y = (sbyte)by, Z = (sbyte)bz };
-                            string pgregion = regionname;
-
-                            if (ProcGenSectorByCoords.ContainsKey(regioncoords))
-                            {
-                                pgregion = ProcGenSectorByCoords[regioncoords];
-                            }
-
-                            Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={pgregion} {GetPgSuffix(relcoords, starclass, index)}");
-                        }
+                        ByteXYZ relcoords = new ByteXYZ { X = (sbyte)bx, Y = (sbyte)by, Z = (sbyte)bz };
+                        Console.WriteLine($"System {sysname}: Unknown sector {regionname} @ {regioncoords} - coordname={pgregion} {GetPgSuffix(relcoords, starclass, index)}");
+                        return PGStarMatch.Invalid;
                     }
-                }
-
-                if (coords == null)
-                {
-                    return PGStarMatch.Invalid;
                 }
 
                 int ix = coords[0];
@@ -650,19 +612,9 @@ namespace EDDNListener
                     return 0;
                 }
             }
-            else if (ProcGenSectorByName.ContainsKey(regionname))
-            {
-                ByteXYZ regioncoords = ProcGenSectorByName[regionname];
-                coords = new int[]
-                {
-                    (regioncoords.X << starclass) + blkcoords.X,
-                    (regioncoords.Y << starclass) + blkcoords.Y,
-                    (regioncoords.Z << starclass) + blkcoords.Z
-                };
-            }
             else
             {
-                sector = HandAuthoredSectors.Sectors.FirstOrDefault(s => s.name == regionname);
+                sector = HandAuthoredSectors.Sectors.FindSector(regionname).FirstOrDefault();
                 if (sector != null)
                 {
                     int[] basecoords = sector.GetBaseBlockCoords(starclass);
@@ -672,6 +624,19 @@ namespace EDDNListener
                         basecoords[1] + blkcoords.Y,
                         basecoords[2] + blkcoords.Z
                     };
+                }
+                else
+                {
+                    ByteXYZ regioncoords = PGSectors.GetSectorPos(regionname);
+                    if (regioncoords != ByteXYZ.Invalid)
+                    {
+                        coords = new int[]
+                        {
+                            (regioncoords.X << starclass) + blkcoords.X,
+                            (regioncoords.Y << starclass) + blkcoords.Y,
+                            (regioncoords.Z << starclass) + blkcoords.Z
+                        };
+                    }
                 }
             }
 
@@ -690,59 +655,6 @@ namespace EDDNListener
             {
                 return 0;
             }
-        }
-
-        public static void LoadProcGenSectorsJson(string filename)
-        {
-            Console.WriteLine($"Loading procgen sectors from {filename}");
-            using (Stream s = File.OpenRead(filename))
-            {
-                using (TextReader r = new StreamReader(s))
-                {
-                    using (JsonReader rdr = new JsonTextReader(r))
-                    {
-                        JArray ja = JArray.Load(rdr);
-                        PGStarMatch.ProcGenSectorByCoords = ja.ToDictionary(jt => new ByteXYZ((sbyte)(jt.Value<sbyte>("x") + 39), (sbyte)(jt.Value<sbyte>("y") + 32), (sbyte)(jt.Value<sbyte>("z") + 19)), jt => jt.Value<string>("name"));
-                        PGStarMatch.ProcGenSectorByName = ProcGenSectorByCoords.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-                    }
-                }
-            }
-            Console.WriteLine("Done");
-        }
-
-        public static void SaveProcGenSectorsJson(string filename)
-        {
-            File.Delete(filename + ".tmp");
-            using (Stream s = File.OpenWrite(filename + ".tmp"))
-            {
-                using (TextWriter w = new StreamWriter(s))
-                {
-                    using (JsonTextWriter writer = new JsonTextWriter(w))
-                    {
-                        writer.Formatting = Formatting.Indented;
-                        writer.WriteStartArray();
-                        foreach (KeyValuePair<ByteXYZ, string> kvp in ProcGenSectorByCoords)
-                        {
-                            writer.WriteStartObject();
-                            writer.Formatting = Formatting.None;
-                            writer.WritePropertyName("name");
-                            writer.WriteValue(kvp.Value);
-                            writer.WritePropertyName("x");
-                            writer.WriteValue(kvp.Key.X - 39);
-                            writer.WritePropertyName("y");
-                            writer.WriteValue(kvp.Key.Y - 32);
-                            writer.WritePropertyName("z");
-                            writer.WriteValue(kvp.Key.Z - 19);
-                            writer.WriteEndObject();
-                            writer.Formatting = Formatting.Indented;
-                        }
-                        writer.WriteEndArray();
-                    }
-                }
-            }
-
-            File.Delete(filename);
-            File.Move(filename + ".tmp", filename);
         }
 
         public static void LoadNamedSystemsJson(string filename)

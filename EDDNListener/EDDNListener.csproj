@@ -72,6 +72,7 @@
     <Compile Include="HandAuthoredSectorCollection.cs" />
     <Compile Include="HandAuthoredSectors.cs" />
     <Compile Include="Listener.cs" />
+    <Compile Include="PGSectors.cs" />
     <Compile Include="PGStarMatch.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
