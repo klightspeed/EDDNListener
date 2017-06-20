@@ -499,8 +499,8 @@ namespace EDDNListener
                     int by = (y % 40960) / blocksize;
                     int bz = (z % 40960) / blocksize;
                     ByteXYZ regioncoords = new ByteXYZ { X = (sbyte)(x / 40960), Y = (sbyte)(y / 40960), Z = (sbyte)(z / 40960) };
-                    ByteXYZ nregcoords = PGSectors.GetSectorPos(regionname);
                     string pgregion = PGSectors.GetSectorName(regioncoords);
+                    ByteXYZ nregcoords = pgregion == regionname ? regioncoords : PGSectors.GetSectorPos(regionname);
 
                     if (bx == blkcoords.X && by == blkcoords.Y && bz == blkcoords.Z && nregcoords == regioncoords)
                     {

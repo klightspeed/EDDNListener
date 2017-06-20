@@ -333,11 +333,21 @@ namespace EDDNListener
 
             while (current != "")
             {
+                bool spacestart = current.StartsWith(" ");
                 current = current.Trim();
                 FragmentInfo frag = Fragments.FirstOrDefault(f => current.StartsWith(f.Value));
                 if (frag.Value == null)
                 {
                     return null;
+                }
+                if (spacestart)
+                {
+                    frag.IsSuffix = false;
+                    frag.IsInfix = false;
+                }
+                else if (fragments.Count != 0 && frag.IsInfix && frag.IsVowelInfix != fragments.Last().IsVowelInfix)
+                {
+                    frag.IsPrefix = false;
                 }
                 fragments.Add(frag);
                 current = current.Substring(frag.Value.Length);
