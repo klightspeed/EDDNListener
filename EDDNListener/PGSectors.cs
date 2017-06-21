@@ -143,6 +143,9 @@ namespace EDDNListener
         private static int Infix1TotalRunLength = FillOffsets(Infixes1, InfixRunLengths, InfixOffsets, Suffixes2.Length);
         private static int Infix2TotalRunLength = FillOffsets(Infixes2, InfixRunLengths, InfixOffsets, Suffixes1.Length);
 
+        private static Dictionary<ByteXYZ, string> CachedSectorsByCoords = new Dictionary<ByteXYZ, string>();
+        private static Dictionary<string, ByteXYZ> CachedSectorsByName = new Dictionary<string, ByteXYZ>(StringComparer.InvariantCultureIgnoreCase);
+
         private static int FillOffsets(string[] prefixes, Dictionary<string, int> runlengths, Dictionary<string, int> offsets, int defaultlen)
         {
             int cnt = 0;
@@ -228,15 +231,26 @@ namespace EDDNListener
         // Region coords to sector name - based on https://bitbucket.org/Esvandiary/edts/src/master/pgnames.py
         public static string GetSectorName(ByteXYZ pos)
         {
-            int offset = (pos.Z << 14) + (pos.Y << 7) + pos.X;
-
-            if (IsC1Sector(offset))
+            if (CachedSectorsByCoords.ContainsKey(pos))
             {
-                return GetC1Name(offset);
+                return CachedSectorsByCoords[pos];
             }
             else
             {
-                return GetC2Name(offset);
+                int offset = (pos.Z << 14) + (pos.Y << 7) + pos.X;
+                string sectorname;
+
+                if (IsC1Sector(offset))
+                {
+                    sectorname = GetC1Name(offset);
+                }
+                else
+                {
+                    sectorname = GetC2Name(offset);
+                }
+
+                CachedSectorsByCoords[pos] = sectorname;
+                return sectorname;
             }
         }
 
@@ -358,26 +372,38 @@ namespace EDDNListener
 
         public static ByteXYZ GetSectorPos(string name)
         {
-            List<FragmentInfo> fragments = GetSectorFragments(name);
-            if (fragments == null)
+            if (CachedSectorsByName.ContainsKey(name))
             {
-                return ByteXYZ.Invalid;
-            }
-            else if (fragments.Count == 4 && fragments[0].IsPrefix && fragments[1].IsSuffix && fragments[2].IsPrefix && fragments[3].IsSuffix)
-            {
-                return GetC2SectorPos(fragments);
-            }
-            else if (fragments.Count == 3 && fragments[0].IsPrefix && fragments[1].IsInfix && fragments[2].IsSuffix)
-            {
-                return GetC1SectorPos3(fragments);
-            }
-            else if (fragments.Count == 4 && fragments[0].IsPrefix && fragments[1].IsInfix && fragments[2].IsInfix && fragments[3].IsSuffix)
-            {
-                return GetC1SectorPos4(fragments);
+                return CachedSectorsByName[name];
             }
             else
             {
-                return ByteXYZ.Invalid;
+                List<FragmentInfo> fragments = GetSectorFragments(name);
+                ByteXYZ coords;
+
+                if (fragments == null)
+                {
+                    return ByteXYZ.Invalid;
+                }
+                else if (fragments.Count == 4 && fragments[0].IsPrefix && fragments[1].IsSuffix && fragments[2].IsPrefix && fragments[3].IsSuffix)
+                {
+                    coords = GetC2SectorPos(fragments);
+                }
+                else if (fragments.Count == 3 && fragments[0].IsPrefix && fragments[1].IsInfix && fragments[2].IsSuffix)
+                {
+                    coords = GetC1SectorPos3(fragments);
+                }
+                else if (fragments.Count == 4 && fragments[0].IsPrefix && fragments[1].IsInfix && fragments[2].IsInfix && fragments[3].IsSuffix)
+                {
+                    coords = GetC1SectorPos4(fragments);
+                }
+                else
+                {
+                    return ByteXYZ.Invalid;
+                }
+
+                CachedSectorsByName[name] = coords;
+                return coords;
             }
         }
 

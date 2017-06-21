@@ -75,7 +75,7 @@ namespace EDDNListener
         {
             get
             {
-                return GetProcGenId(RegionCoords, RegionRelCoords, _StarClass, _StarSeq);
+                return GetProcGenId(RegionCoords, RegionRelCoords, StarClass, StarSeq);
             }
         }
 
@@ -146,7 +146,7 @@ namespace EDDNListener
         {
             get
             {
-                return _StarClass;
+                return _StarClass & 7;
             }
         }
 
