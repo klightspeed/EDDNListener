@@ -9,6 +9,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Ionic.Zlib;
+using EDProcGen;
 
 namespace EDDNListener
 {
